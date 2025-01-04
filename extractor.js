@@ -15,7 +15,7 @@ function findFiles(dir) {
   return ret;
 }
 
-const dir = "D:/code/misc/webfishing/webfishing-decomp";
+const dir = "D:/TEMP_data/RE/webfishing/decomp";
 const out = "./src/game";
 const iconsDir = "./public/icons";
 if (!fs.existsSync(out)) fs.mkdirSync(out);

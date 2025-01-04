@@ -28,7 +28,14 @@
     "pcolor_west",
     "title_lamedev",
     "title_lamedev_real",
-    "scolor_midnight_special"
+    "scolor_midnight_special",
+    "title_admiral",
+    "title_candy",
+    "title_hazard",
+    "title_igloo",
+    "title_nitrousoxide",
+    "title_specialforces",
+    "title_zed"
   ];
 
   const filteredCosmetics = Object.fromEntries(

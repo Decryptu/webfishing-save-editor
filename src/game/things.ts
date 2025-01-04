@@ -389,10 +389,12 @@ const title: Things = {
   title_rank_5: { name: "Tenderfoot Title", category: "title", icon: null },
   title_rank_50: { name: "Voyager Title", category: "title", icon: null },
   title_ace: { name: "Ace Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_admiral: { name: "Admiral", category: "title", icon: "cosmetic_icons62.png" },
   title_ancient: { name: "Ancient Title", category: "title", icon: "cosmetic_icons62.png" },
   title_bi: { name: "Bi Title", category: "title", icon: "cosmetic_icons62.png" },
   title_bipedalanimaldrawer: { name: "Bipedal Animal Drawer Title", category: "title", icon: "cosmetic_icons62.png" },
   title_cadaverdog: { name: "Cadaver Dog Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_candy: { name: "NiceCandy", category: "title", icon: "cosmetic_icons62.png" },
   title_catfisher: { name: "Catfisher Title", category: "title", icon: "cosmetic_icons62.png" },
   title_cozy: { name: "Cozy Title", category: "title", icon: "cosmetic_icons62.png" },
   title_creature: { name: "Creature Title", category: "title", icon: "cosmetic_icons62.png" },
@@ -417,6 +419,8 @@ const title: Things = {
   title_goober: { name: "Goober Title", category: "title", icon: "cosmetic_icons62.png" },
   title_goodboy: { name: "Good Boy Title", category: "title", icon: "cosmetic_icons62.png" },
   title_goodgirl: { name: "Good Girl Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_hazard: { name: "77 | 3328 FISSILE", category: "title", icon: "cosmetic_icons62.png" },
+  title_igloo: { name: "Igloo or Hot Dog", category: "title", icon: "cosmetic_icons62.png" },
   title_imnormal: { name: "Normal and Regular Title", category: "title", icon: "cosmetic_icons62.png" },
   title_iscool: { name: "Is Cool Title", category: "title", icon: "cosmetic_icons62.png" },
   title_king: { name: "King Title", category: "title", icon: "cosmetic_icons62.png" },
@@ -429,6 +433,7 @@ const title: Things = {
   title_majestic: { name: "Majestic Title", category: "title", icon: "cosmetic_icons62.png" },
   title_musky: { name: "Musky Title", category: "title", icon: "cosmetic_icons62.png" },
   title_nightcrawler: { name: "Night Crawler Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_nitrousoxide: { name: "Nitrous Oxide", category: "title", icon: "cosmetic_icons62.png" },
   title_nonbinary: { name: "Non-Binary Title", category: "title", icon: "cosmetic_icons62.png" },
   title_none: { name: "No Title", category: "title", icon: "cosmetic_icons62.png" },
   title_pan: { name: "Pan Title", category: "title", icon: "cosmetic_icons62.png" },
@@ -442,12 +447,14 @@ const title: Things = {
   title_sillyguy: { name: "Silly Guy Title", category: "title", icon: "cosmetic_icons62.png" },
   title_soggy: { name: "Soggy Doggy Title", category: "title", icon: "cosmetic_icons62.png" },
   title_special: { name: "Special Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_specialforces: { name: "Webfishing Special Forces", category: "title", icon: "cosmetic_icons62.png" },
   title_stinkerdinker: { name: "Stinker Dinker Title", category: "title", icon: "cosmetic_icons62.png" },
   title_straight: { name: '"straight" Title', category: "title", icon: "cosmetic_icons62.png" },
   title_strongestwarrior: { name: "Strongest Warrior Title", category: "title", icon: "cosmetic_icons62.png" },
   title_stupididiotbaby: { name: "Stupid Idiot Baby Title", category: "title", icon: "cosmetic_icons62.png" },
   title_trans: { name: "Trans Title", category: "title", icon: "cosmetic_icons62.png" },
-  title_yapper: { name: "Yapper Title", category: "title", icon: "cosmetic_icons62.png" }
+  title_yapper: { name: "Yapper Title", category: "title", icon: "cosmetic_icons62.png" },
+  title_zed: { name: "ZedDog", category: "title", icon: "cosmetic_icons62.png" }
 };
 
 const secondary_color: Things = {

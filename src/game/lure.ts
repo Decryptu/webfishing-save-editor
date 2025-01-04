@@ -50,6 +50,12 @@ export const baits: Record<string, Bait> = {
     name: "Nautiluses",
     desc: "Pristine Quality Bait\nCatches all Tiers of fish\nLow chance of finding ALPHA fish",
     cost: 500
+  },
+  gildedworm: {
+    icon: "bait_icons25.png",
+    name: "Gilded Worm",
+    desc: "Pristine Quality Bait\nCatches all Tiers of fish\nBest chance of finding ALPHA fish",
+    cost: 1200
   }
 };
 
@@ -137,5 +143,11 @@ export const lures: Record<string, Lure> = {
     name: "Challenge Lure",
     desc: "Popups appear during the fishing minigame, clicking them gives cash- but missing them hurts you!",
     effect_id: "challenge"
+  },
+  rain_lure: {
+    icon: "bait_icons24.png",
+    name: "Shower Lure",
+    desc: "On catch, small chance to summon a tiny rainstorm above you.",
+    effect_id: "rain"
   }
 };

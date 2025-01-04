@@ -128,5 +128,4 @@
       <button on:click={fixCorrupt}>Fix</button>
     </footer>
   </article>
-  <h2>Potentially Corrupt Save</h2>
 {/if}
