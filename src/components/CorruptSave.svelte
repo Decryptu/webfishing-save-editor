@@ -36,6 +36,7 @@
 
   type CorruptionDetails = {
     journalEntries: { section: string; ids: string[] }[];
+    malformedSections: { key: string; reason: string }[];
     equippedCosmetics: string[];
     unlockedCosmetics: string[];
   };
@@ -43,83 +44,160 @@
   function checkCorrupt(): CorruptionDetails | null {
     const details: CorruptionDetails = {
       journalEntries: [],
+      malformedSections: [],
       equippedCosmetics: [],
       unlockedCosmetics: []
     };
 
-    for (const [section, value] of Object.entries(dictWithoutSpecial(save.value.journal.value))) {
-      const unknownIds = Object.keys(value.value)
-        .filter((x) => !x.startsWith("__saveEditor") && !(x in things));
+    // Dump the full journal structure for debugging
+    const journalValue = save.value.journal.value;
+    const allJournalKeys = Object.keys(journalValue).filter((x) => !x.startsWith("__saveEditor"));
+    console.log("[Save Editor] Journal sections found:", allJournalKeys);
+
+    for (const sectionKey of allJournalKeys) {
+      const section = (journalValue as Record<string, any>)[sectionKey];
+
+      // Check if this section is a proper dictionary
+      if (!section || typeof section !== "object" || section.$type !== GodotVariantType.Dictionary) {
+        console.log(`[Save Editor] Malformed journal section "${sectionKey}":`, section);
+        details.malformedSections.push({
+          key: sectionKey,
+          reason: !section
+            ? "null/undefined value"
+            : section.$type !== undefined
+              ? `unexpected type ${section.$type}`
+              : "not a dictionary"
+        });
+        continue;
+      }
+
+      const sectionValue = section.value;
+      if (!sectionValue || typeof sectionValue !== "object") {
+        console.log(`[Save Editor] Section "${sectionKey}" has no value:`, section);
+        details.malformedSections.push({ key: sectionKey, reason: "section has no inner value" });
+        continue;
+      }
+
+      const entryKeys = Object.keys(sectionValue).filter((x) => !x.startsWith("__saveEditor"));
+      console.log(`[Save Editor] Section "${sectionKey}" entries:`, entryKeys);
+
+      const unknownIds: string[] = [];
+      for (const entryKey of entryKeys) {
+        if (!(entryKey in things)) {
+          unknownIds.push(entryKey);
+        }
+        // Also check if the entry value is a proper JournalItem dictionary
+        const entry = sectionValue[entryKey];
+        if (entry && typeof entry === "object" && entry.$type !== GodotVariantType.Dictionary) {
+          console.log(
+            `[Save Editor] Entry "${entryKey}" in section "${sectionKey}" is not a dictionary:`,
+            entry
+          );
+          if (!unknownIds.includes(entryKey)) {
+            unknownIds.push(entryKey);
+          }
+        }
+      }
+
       if (unknownIds.length > 0) {
-        details.journalEntries.push({ section, ids: unknownIds });
+        details.journalEntries.push({ section: sectionKey, ids: unknownIds });
       }
     }
 
-    const cosmeticsEquipped = Object.values(dictWithoutSpecial(save.value.cosmetics_equipped.value))
-      .map((x) => (x.$type === GodotVariantType.String ? [x] : x.value) as GodotString[])
-      .flat()
-      .map((x) => x.value);
-    details.equippedCosmetics = cosmeticsEquipped.filter((x) => !(x in things));
+    // Check cosmetics
+    try {
+      const cosmeticsEquipped = Object.values(dictWithoutSpecial(save.value.cosmetics_equipped.value))
+        .map((x: any) => (x.$type === GodotVariantType.String ? [x] : x.value) as GodotString[])
+        .flat()
+        .map((x) => x.value);
+      details.equippedCosmetics = cosmeticsEquipped.filter((x) => !(x in things));
+    } catch (e) {
+      console.log("[Save Editor] Error checking equipped cosmetics:", e);
+    }
 
-    const cosmeticsUnlocked = save.value.cosmetics_unlocked.value.map((x) => x.value).flat();
-    details.unlockedCosmetics = cosmeticsUnlocked.filter((x) => !(x in things));
+    try {
+      const cosmeticsUnlocked = save.value.cosmetics_unlocked.value.map((x) => x.value).flat();
+      details.unlockedCosmetics = cosmeticsUnlocked.filter((x) => !(x in things));
+    } catch (e) {
+      console.log("[Save Editor] Error checking unlocked cosmetics:", e);
+    }
 
     const hasCorruption =
       details.journalEntries.length > 0 ||
+      details.malformedSections.length > 0 ||
       details.equippedCosmetics.length > 0 ||
       details.unlockedCosmetics.length > 0;
 
     if (hasCorruption) {
-      console.log("Corruption details:", details);
+      console.log("[Save Editor] Corruption details:", details);
       return details;
     }
 
+    console.log("[Save Editor] No corruption detected.");
     return null;
   }
 
   let corruption = checkCorrupt();
 
   function fixCorrupt() {
+    // Remove malformed sections from journal
+    for (const { key } of corruption?.malformedSections ?? []) {
+      console.log(`Deleting malformed journal section "${key}"`);
+      delete (save.value.journal.value as Record<string, any>)[key];
+      // Also remove from __saveEditor_order if present
+      const order = (save.value.journal.value as any).__saveEditor_order;
+      if (Array.isArray(order)) {
+        const idx = order.indexOf(key);
+        if (idx !== -1) order.splice(idx, 1);
+      }
+    }
+
+    // Remove unknown entries within journal sections
     for (const [key, value] of Object.entries(save.value.journal.value)) {
       if (key.startsWith("__saveEditor")) continue;
 
-      for (const [key2, value2] of Object.entries(value.value)) {
+      if (!value || typeof value !== "object" || (value as any).$type !== GodotVariantType.Dictionary) {
+        continue; // Skip non-dictionary sections (already handled above)
+      }
+
+      for (const [key2] of Object.entries(value.value)) {
         if (key2.startsWith("__saveEditor")) continue;
         if (!(key2 in things)) {
-          console.log(`Deleting ${key2} from journal`);
+          console.log(`Deleting "${key2}" from journal section "${key}"`);
           delete value.value[key2];
         }
       }
     }
 
+    // Fix equipped cosmetics
     const untypedCosmeticsEquipped: Record<any, any> = save.value.cosmetics_equipped.value;
     for (const [key, value] of Object.entries(save.value.cosmetics_equipped.value)) {
       if (key.startsWith("__saveEditor")) continue;
 
       if (value.$type === GodotVariantType.String) {
         if (!(value.value in things)) {
-          console.log(`Deleting ${value.value} from equipped cosmetics`);
+          console.log(`Replacing "${value.value}" in equipped cosmetics with fallback`);
           const fallback = fallbackCosm[key];
           untypedCosmeticsEquipped[key] = Array.isArray(fallback) ? array(fallback.map(string)) : string(fallback);
         }
       } else {
         const cloned = [...value.value];
-
         for (let i = 0; i < cloned.length; i++) {
           const item = cloned[i];
           if (!(item.value in things)) {
-            console.log(`Deleting ${item.value} from equipped cosmetics`);
+            console.log(`Deleting "${item.value}" from equipped cosmetics`);
             value.value.splice(value.value.indexOf(item), 1);
           }
         }
       }
     }
 
+    // Fix unlocked cosmetics
     const cloned = [...save.value.cosmetics_unlocked.value];
     for (let i = 0; i < cloned.length; i++) {
       const item = cloned[i];
       if (!(item.value in things)) {
-        console.log(`Deleting ${item.value} from unlocked cosmetics`);
+        console.log(`Deleting "${item.value}" from unlocked cosmetics`);
         save.value.cosmetics_unlocked.value.splice(save.value.cosmetics_unlocked.value.indexOf(item), 1);
       }
     }
@@ -138,7 +216,7 @@
 
     {#if corruption.journalEntries.length > 0}
       <details open>
-        <summary>Unknown journal entries</summary>
+        <summary>Unknown journal entries ({corruption.journalEntries.reduce((a, e) => a + e.ids.length, 0)})</summary>
         <ul>
           {#each corruption.journalEntries as entry}
             <li>
@@ -155,9 +233,22 @@
       </details>
     {/if}
 
+    {#if corruption.malformedSections.length > 0}
+      <details open>
+        <summary>Malformed journal sections ({corruption.malformedSections.length})</summary>
+        <ul>
+          {#each corruption.malformedSections as section}
+            <li>
+              <code>{section.key}</code> &mdash; {section.reason}
+            </li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
     {#if corruption.equippedCosmetics.length > 0}
       <details>
-        <summary>Unknown equipped cosmetics</summary>
+        <summary>Unknown equipped cosmetics ({corruption.equippedCosmetics.length})</summary>
         <ul>
           {#each corruption.equippedCosmetics as id}
             <li><code>{id}</code></li>
@@ -168,7 +259,7 @@
 
     {#if corruption.unlockedCosmetics.length > 0}
       <details>
-        <summary>Unknown unlocked cosmetics</summary>
+        <summary>Unknown unlocked cosmetics ({corruption.unlockedCosmetics.length})</summary>
         <ul>
           {#each corruption.unlockedCosmetics as id}
             <li><code>{id}</code></li>
