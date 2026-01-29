@@ -3,6 +3,7 @@ import type {
   GodotInt,
   GodotReal,
   GodotArray,
+  GodotVariant,
   GodotCustomDictionary,
   GodotCustomArray,
   GodotVector2,
@@ -31,6 +32,7 @@ export type WebfishingSave = GodotCustomDictionary<{
   buddy_level: GodotInt;
   buddy_speed: GodotInt;
   cash_total: GodotInt;
+  completed_quests: GodotArray;
   cosmetics_equipped: GodotCustomDictionary<{
     accessory: GodotCustomArray<GodotString[]>;
     bobber: GodotString;
@@ -71,6 +73,7 @@ export type WebfishingSave = GodotCustomDictionary<{
   level: GodotInt;
   loan_left: GodotInt;
   loan_level: GodotInt;
+  locked_refs: GodotArray;
   lure_selected: GodotString;
   lure_unlocked: GodotCustomArray<GodotString[]>;
   max_bait: GodotInt;
@@ -94,6 +97,7 @@ export type WebfishingSave = GodotCustomDictionary<{
     vsync: GodotInt;
     water: GodotInt;
   }>;
+  recorded_time: GodotCustomDictionary<Record<string, GodotVariant>>;
   quests: GodotCustomDictionary<
     Record<
       string,

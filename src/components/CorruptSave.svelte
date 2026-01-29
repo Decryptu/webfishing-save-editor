@@ -34,14 +34,14 @@
     void: "Void"
   };
 
-  // All known top-level save fields from the WebfishingSave type
+  // All known top-level save fields from the WebfishingSave type + newer game fields
   const knownSaveFields = new Set([
     "bait_inv", "bait_selected", "bait_unlocked", "buddy_level", "buddy_speed", "cash_total",
-    "cosmetics_equipped", "cosmetics_unlocked", "fish_caught", "guitar_shapes",
+    "completed_quests", "cosmetics_equipped", "cosmetics_unlocked", "fish_caught", "guitar_shapes",
     "hidden_players", "hotbar", "inbound_mail", "inventory", "journal",
-    "level", "loan_left", "loan_level", "lure_selected", "lure_unlocked",
+    "level", "loan_left", "loan_level", "locked_refs", "lure_selected", "lure_unlocked",
     "max_bait", "money", "muted_players", "new_cosmetics", "player_options",
-    "quests", "rod_chance", "rod_luck", "rod_power", "rod_speed",
+    "quests", "recorded_time", "rod_chance", "rod_luck", "rod_power", "rod_speed",
     "saved_aqua_fish", "saved_tags", "shop", "version", "voice_pitch", "voice_speed", "xp"
   ]);
 
