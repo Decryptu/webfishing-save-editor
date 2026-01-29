@@ -67,7 +67,7 @@ export class BinaryWriter implements BinaryInterface {
     this.data = new Uint8Array(1024 * 1024);
     this.view = new DataView(this.data.buffer);
 
-    this.length = 0;
+    this.length = this.data.length;
     this.position = 0;
   }
 
@@ -112,13 +112,16 @@ export class BinaryWriter implements BinaryInterface {
   }
 
   private grow(length: number) {
-    const required = this.length - (this.position + length);
-    if (required <= 0) return;
+    const needed = this.position + length;
+    if (needed <= this.length) return;
 
-    const newData = new Uint8Array(this.length + required);
+    // Double the buffer size or grow to needed size, whichever is larger
+    const newLength = Math.max(this.length * 2, needed);
+    const newData = new Uint8Array(newLength);
     newData.set(this.data);
     this.data = newData;
     this.view = new DataView(this.data.buffer);
+    this.length = newLength;
   }
 }
 
