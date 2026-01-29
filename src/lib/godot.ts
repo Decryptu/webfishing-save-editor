@@ -196,15 +196,14 @@ export function writeVariant(data: BinaryWriter, variant: GodotVariant): void {
     }
 
     case GodotVariantType.Dictionary: {
-      // Ensure we serialized integers properly and that the order is preserved
-      // This would be solved if we used Map, but I want it to be easy ergonomically from UI code
+      // Ensure we serialize integers properly and that the order is preserved
+      // Read metadata without deleting it so the save object stays intact for re-downloads
       const intKeys = variant.value.__saveEditor_intKeys ?? {};
-      delete variant.value.__saveEditor_intKeys;
-
       const order = variant.value.__saveEditor_order ?? [];
-      delete variant.value.__saveEditor_order;
 
-      const keys = Object.keys(variant.value);
+      const keys = Object.keys(variant.value).filter(
+        (k) => k !== "__saveEditor_intKeys" && k !== "__saveEditor_order"
+      );
       keys.sort((a, b) => {
         const ai = order.indexOf(a);
         const bi = order.indexOf(b);
