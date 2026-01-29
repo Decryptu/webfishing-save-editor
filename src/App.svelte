@@ -43,9 +43,8 @@
 <hgroup>
   <h1>WEBFISHING Save Editor</h1>
   <p>
-    <a href="https://github.com/NotNite/webfishing-save-editor">GitHub</a> - by
-    <a href="https://notnite.com/">NotNite</a>
-    and <a href="https://hl2.sh/">Jay</a>
+    <a href="https://github.com/Decryptu/webfishing-save-editor">GitHub</a> - maintained by
+    <a href="https://github.com/Decryptu">Decryptu</a>
   </p>
 </hgroup>
 
@@ -87,12 +86,3 @@
   </div>
 {/if}
 
-<style>
-  .parseError {
-    border-color: var(--pico-del-color, #e53935);
-  }
-  .parseError header {
-    background: var(--pico-del-color, #e53935);
-    color: white;
-  }
-</style>

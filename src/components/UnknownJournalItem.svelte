@@ -43,28 +43,27 @@
 <style>
   .unknownJournalItem {
     align-items: center;
-    border: 2px dashed var(--pico-del-color, #e53935);
-    background: color-mix(in srgb, var(--pico-del-color, #e53935) 8%, transparent);
+    border: 2px dashed var(--color-danger);
+    background: rgba(173, 10, 35, 0.15);
   }
 
   .unknownItemHeader {
     display: flex;
     align-items: center;
-    margin-bottom: var(--pico-spacing);
-    gap: var(--pico-spacing);
+    margin-bottom: var(--spacing-sm);
+    gap: var(--spacing-sm);
   }
 
   .unknownIcon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 24px;
+    height: 24px;
     font-weight: bold;
-    font-size: 0.7rem;
-    background: var(--pico-del-color, #e53935);
-    color: white;
-    border-radius: 4px;
+    font-size: var(--font-size-xs);
+    background: var(--color-danger);
+    color: var(--color-sky);
   }
 
   .unknownItemInfo {
@@ -74,31 +73,31 @@
 
   .unknownName {
     font-weight: bold;
-    color: var(--pico-del-color, #e53935);
+    color: var(--color-danger);
+    font-size: var(--font-size-xs);
   }
 
   .unknownId {
-    font-size: 0.8em;
+    font-size: var(--font-size-xs);
     opacity: 0.8;
   }
 
   .rarityLabel {
-    margin-bottom: 0.25rem;
-    font-size: 0.85em;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-xs);
   }
 
   .rarityBadge {
     display: inline-block;
-    padding: 0.1rem 0.4rem;
-    margin: 0.1rem;
-    font-size: 0.8em;
-    border-radius: 4px;
-    background: var(--pico-muted-border-color);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin: 2px;
+    font-size: var(--font-size-xs);
+    background: var(--color-border);
+    border: 2px solid var(--color-border);
   }
 
   .removeBtn {
-    background: var(--pico-del-color, #e53935);
-    border-color: var(--pico-del-color, #e53935);
+    background: var(--color-danger);
     margin: 0;
   }
 </style>

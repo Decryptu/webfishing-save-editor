@@ -40,21 +40,30 @@
   .item {
     display: flex;
     flex-direction: column;
+    margin-bottom: var(--spacing-md);
   }
 
   .itemSelect {
     display: flex;
     align-items: center;
-    margin-bottom: var(--pico-spacing);
-    gap: var(--pico-spacing);
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
   }
 
   .itemSelect img {
-    max-height: 3rem;
+    max-height: 48px;
     aspect-ratio: 1 / 1;
+    border: 2px solid var(--color-border);
+    background-color: var(--color-bg-light);
+    padding: 2px;
   }
 
   .itemSelect select {
     margin-bottom: 0;
+    flex: 1;
+  }
+
+  .itemSelect button {
+    white-space: nowrap;
   }
 </style>

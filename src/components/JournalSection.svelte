@@ -90,41 +90,39 @@
 
 <style>
   .unknownSection {
-    margin-top: 1rem;
+    margin-top: var(--spacing-md);
   }
 
   .unknownHeader {
     font-weight: bold;
-    color: var(--pico-del-color, #e53935);
-    margin-bottom: 0.5rem;
+    color: var(--color-danger);
+    margin-bottom: var(--spacing-sm);
   }
 
   .malformedEntry {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    border: 2px dashed var(--pico-del-color, #e53935);
-    background: color-mix(in srgb, var(--pico-del-color, #e53935) 8%, transparent);
+    gap: var(--spacing-md);
+    border: 2px dashed var(--color-danger);
+    background: rgba(173, 10, 35, 0.15);
   }
 
   .unknownIcon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 24px;
+    height: 24px;
     font-weight: bold;
-    font-size: 0.7rem;
-    background: var(--pico-del-color, #e53935);
-    color: white;
-    border-radius: 4px;
-    margin-right: 0.5rem;
+    font-size: var(--font-size-xs);
+    background: var(--color-danger);
+    color: var(--color-sky);
+    margin-right: var(--spacing-sm);
   }
 
   .removeBtn {
-    background: var(--pico-del-color, #e53935);
-    border-color: var(--pico-del-color, #e53935);
+    background: var(--color-danger);
     margin: 0;
     white-space: nowrap;
   }
