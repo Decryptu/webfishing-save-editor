@@ -1,4 +1,4 @@
-import "@picocss/pico";
+import "./style.css";
 import App from "./App.svelte";
 
 const app = new App({

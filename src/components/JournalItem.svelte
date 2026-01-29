@@ -73,12 +73,21 @@
   .journalItemName {
     display: flex;
     align-items: center;
-    margin-bottom: var(--pico-spacing);
-    gap: var(--pico-spacing);
+    margin-bottom: var(--spacing-sm);
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-xs);
   }
 
   .journalItemName img {
-    max-height: 1.5rem;
+    max-height: 32px;
     aspect-ratio: 1 / 1;
+    border: 2px solid var(--color-border);
+    background-color: var(--color-bg-light);
+    padding: 2px;
+  }
+
+  .journalItemName span {
+    color: var(--color-accent);
+    font-weight: bold;
   }
 </style>

@@ -44,22 +44,61 @@
 </script>
 
 <Section title="Cosmetics">
-  {#each Object.entries(filteredCosmetics) as [id, cosmetic]}
-    <div>
-      <input
-        type="checkbox"
-        id={`cosmetic-${id}`}
-        checked={save.value.cosmetics_unlocked.value.find((i) => i.value === id) != null}
-        on:change={(e) => setCosmeticWrapped(id, e)}
-      />
-      <img src={`${iconsDir}/${cosmetic.icon}`} alt={cosmetic.name} class="icon" />
-      <label for={`cosmetic-${id}`}>{cosmetic.name}</label>
-    </div>
-  {/each}
+  <div class="cosmeticsGrid">
+    {#each Object.entries(filteredCosmetics) as [id, cosmetic]}
+      <div class="cosmeticItem">
+        <input
+          type="checkbox"
+          id={`cosmetic-${id}`}
+          checked={save.value.cosmetics_unlocked.value.find((i) => i.value === id) != null}
+          on:change={(e) => setCosmeticWrapped(id, e)}
+        />
+        <img src={`${iconsDir}/${cosmetic.icon}`} alt={cosmetic.name} class="icon" />
+        <label for={`cosmetic-${id}`}>{cosmetic.name}</label>
+      </div>
+    {/each}
+  </div>
 </Section>
 
 <style>
+  .cosmeticsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .cosmeticItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs);
+    background-color: rgba(42, 42, 42, 0.5);
+    border: 2px solid var(--color-border);
+  }
+
+  .cosmeticItem:hover {
+    background-color: rgba(49, 141, 112, 0.1);
+    border-color: var(--color-primary);
+  }
+
   .icon {
-    max-width: 3rem;
+    max-width: 32px;
+    max-height: 32px;
+    border: 2px solid var(--color-border);
+    background-color: var(--color-bg-light);
+    padding: 2px;
+  }
+
+  .cosmeticItem label {
+    flex: 1;
+    margin: 0;
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .cosmeticsGrid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

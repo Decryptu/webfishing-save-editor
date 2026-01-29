@@ -376,11 +376,15 @@
 <style>
   .inlineRemoveBtn {
     display: inline;
-    padding: 0.1rem 0.5rem;
-    margin-left: 0.5rem;
-    font-size: 0.8em;
-    background: var(--pico-del-color, #e53935);
-    border-color: var(--pico-del-color, #e53935);
-    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin-left: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-danger);
+  }
+
+  article footer {
+    padding: var(--spacing-md);
+    background-color: rgba(26, 26, 26, 0.5);
+    border-top: var(--border-width) solid var(--color-border);
   }
 </style>
