@@ -25,44 +25,59 @@
     legs: "legs_none"
   };
 
-  function checkCorrupt() {
-    const journalFish = Object.values(dictWithoutSpecial(save.value.journal.value))
-      .map((x) => Object.keys(x.value))
-      .flat()
-      .filter((x) => !x.startsWith("__saveEditor"));
-    if (journalFish.some((x) => !(x in things))) {
-      console.log(
-        "Corrupt save from journalFish",
-        journalFish.filter((x) => !(x in things))
-      );
-      return true;
+  const sectionNames: Record<string, string> = {
+    lake: "Lake",
+    ocean: "Ocean",
+    rain: "Rain",
+    water_trash: "Trash",
+    alien: "Alien",
+    void: "Void"
+  };
+
+  type CorruptionDetails = {
+    journalEntries: { section: string; ids: string[] }[];
+    equippedCosmetics: string[];
+    unlockedCosmetics: string[];
+  };
+
+  function checkCorrupt(): CorruptionDetails | null {
+    const details: CorruptionDetails = {
+      journalEntries: [],
+      equippedCosmetics: [],
+      unlockedCosmetics: []
+    };
+
+    for (const [section, value] of Object.entries(dictWithoutSpecial(save.value.journal.value))) {
+      const unknownIds = Object.keys(value.value)
+        .filter((x) => !x.startsWith("__saveEditor") && !(x in things));
+      if (unknownIds.length > 0) {
+        details.journalEntries.push({ section, ids: unknownIds });
+      }
     }
 
     const cosmeticsEquipped = Object.values(dictWithoutSpecial(save.value.cosmetics_equipped.value))
       .map((x) => (x.$type === GodotVariantType.String ? [x] : x.value) as GodotString[])
       .flat()
       .map((x) => x.value);
-    if (cosmeticsEquipped.some((x) => !(x in things))) {
-      console.log(
-        "Corrupt save from cosmeticsEquipped",
-        cosmeticsEquipped.filter((x) => !(x in things))
-      );
-      return true;
-    }
+    details.equippedCosmetics = cosmeticsEquipped.filter((x) => !(x in things));
 
     const cosmeticsUnlocked = save.value.cosmetics_unlocked.value.map((x) => x.value).flat();
-    if (cosmeticsUnlocked.some((x) => !(x in things))) {
-      console.log(
-        "Corrupt save from cosmeticsUnlocked",
-        cosmeticsUnlocked.filter((x) => !(x in things))
-      );
-      return true;
+    details.unlockedCosmetics = cosmeticsUnlocked.filter((x) => !(x in things));
+
+    const hasCorruption =
+      details.journalEntries.length > 0 ||
+      details.equippedCosmetics.length > 0 ||
+      details.unlockedCosmetics.length > 0;
+
+    if (hasCorruption) {
+      console.log("Corruption details:", details);
+      return details;
     }
 
-    return false;
+    return null;
   }
 
-  let isCorrupt = checkCorrupt();
+  let corruption = checkCorrupt();
 
   function fixCorrupt() {
     for (const [key, value] of Object.entries(save.value.journal.value)) {
@@ -109,23 +124,61 @@
       }
     }
 
-    isCorrupt = false;
+    corruption = null;
   }
 </script>
 
-{#if isCorrupt}
+{#if corruption}
   <article>
     <header>Potentially corrupt save</header>
     <p>
-      Your save seems to be corrupted. Clicking the button below will attempt to fix the save by removing the corrupted
-      content.
+      Your save contains data that doesn't match any known game content. This is often caused by a game bug (like a
+      phantom "???" fish entry in the journal), a broken mod, or new game content not yet supported by this editor.
     </p>
-    <p>
-      This may be a false positive triggered by new game content, or a broken mod that wrote into your save. If the game
-      just updated and you see this error without having used mods before, leave an issue on the GitHub repository.
-    </p>
+
+    {#if corruption.journalEntries.length > 0}
+      <details open>
+        <summary>Unknown journal entries</summary>
+        <ul>
+          {#each corruption.journalEntries as entry}
+            <li>
+              <strong>{sectionNames[entry.section] ?? entry.section}</strong>:
+              {#each entry.ids as id, i}
+                <code>{id}</code>{i < entry.ids.length - 1 ? ", " : ""}
+              {/each}
+            </li>
+          {/each}
+        </ul>
+        <p>
+          <small>You can also scroll down to the Journal section to see and individually remove these entries.</small>
+        </p>
+      </details>
+    {/if}
+
+    {#if corruption.equippedCosmetics.length > 0}
+      <details>
+        <summary>Unknown equipped cosmetics</summary>
+        <ul>
+          {#each corruption.equippedCosmetics as id}
+            <li><code>{id}</code></li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
+    {#if corruption.unlockedCosmetics.length > 0}
+      <details>
+        <summary>Unknown unlocked cosmetics</summary>
+        <ul>
+          {#each corruption.unlockedCosmetics as id}
+            <li><code>{id}</code></li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
     <footer>
-      <button on:click={fixCorrupt}>Fix</button>
+      <button on:click={fixCorrupt}>Fix all</button>
     </footer>
   </article>
 {/if}
