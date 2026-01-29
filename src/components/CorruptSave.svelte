@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WebfishingSave } from "../game/types";
   import things from "../game/things";
-  import { GodotVariantType, type GodotString } from "../lib/types";
+  import { GodotVariantType, type GodotString, type GodotVariant } from "../lib/types";
   import { dictWithoutSpecial } from "../game/util";
   import { array, string } from "../lib/godot";
 
@@ -34,22 +34,88 @@
     void: "Void"
   };
 
+  // All known top-level save fields from the WebfishingSave type
+  const knownSaveFields = new Set([
+    "bait_inv", "bait_selected", "bait_unlocked", "buddy_level", "buddy_speed", "cash_total",
+    "cosmetics_equipped", "cosmetics_unlocked", "fish_caught", "guitar_shapes",
+    "hidden_players", "hotbar", "inbound_mail", "inventory", "journal",
+    "level", "loan_left", "loan_level", "lure_selected", "lure_unlocked",
+    "max_bait", "money", "muted_players", "new_cosmetics", "player_options",
+    "quests", "rod_chance", "rod_luck", "rod_power", "rod_speed",
+    "saved_aqua_fish", "saved_tags", "shop", "version", "voice_pitch", "voice_speed", "xp"
+  ]);
+
+  const variantTypeName: Record<number, string> = {
+    [GodotVariantType.Nil]: "Nil",
+    [GodotVariantType.Bool]: "Bool",
+    [GodotVariantType.Int]: "Int",
+    [GodotVariantType.Real]: "Real",
+    [GodotVariantType.String]: "String",
+    [GodotVariantType.Vector2]: "Vector2",
+    [GodotVariantType.Dictionary]: "Dictionary",
+    [GodotVariantType.Array]: "Array"
+  };
+
+  type UnknownSaveField = {
+    key: string;
+    typeName: string;
+    preview: string;
+  };
+
   type CorruptionDetails = {
     journalEntries: { section: string; ids: string[] }[];
     malformedSections: { key: string; reason: string }[];
     equippedCosmetics: string[];
     unlockedCosmetics: string[];
+    unknownSaveFields: UnknownSaveField[];
   };
+
+  function getVariantPreview(val: any): string {
+    if (!val || typeof val !== "object") return String(val);
+    if (val.$type === GodotVariantType.String) return `"${val.value}"`;
+    if (val.$type === GodotVariantType.Int || val.$type === GodotVariantType.Real) return String(val.value);
+    if (val.$type === GodotVariantType.Bool) return String(val.value);
+    if (val.$type === GodotVariantType.Nil) return "null";
+    if (val.$type === GodotVariantType.Array) return `Array(${val.value.length})`;
+    if (val.$type === GodotVariantType.Dictionary) {
+      const keys = Object.keys(val.value).filter((k: string) => !k.startsWith("__saveEditor"));
+      return `Dict{${keys.slice(0, 5).join(", ")}${keys.length > 5 ? ", ..." : ""}}`;
+    }
+    return JSON.stringify(val).slice(0, 100);
+  }
 
   function checkCorrupt(): CorruptionDetails | null {
     const details: CorruptionDetails = {
       journalEntries: [],
       malformedSections: [],
       equippedCosmetics: [],
-      unlockedCosmetics: []
+      unlockedCosmetics: [],
+      unknownSaveFields: []
     };
 
-    // Dump the full journal structure for debugging
+    // === Scan ALL top-level save keys for unknown fields ===
+    const saveValue = save.value as Record<string, any>;
+    const allSaveKeys = Object.keys(saveValue).filter((x) => !x.startsWith("__saveEditor"));
+    console.log("[Save Editor] All top-level save keys:", allSaveKeys);
+
+    const unknownTopKeys = allSaveKeys.filter((k) => !knownSaveFields.has(k));
+    if (unknownTopKeys.length > 0) {
+      console.log("[Save Editor] UNKNOWN top-level save keys:", unknownTopKeys);
+      for (const key of unknownTopKeys) {
+        const val = saveValue[key];
+        const typeName = val && typeof val === "object" && val.$type !== undefined
+          ? (variantTypeName[val.$type] ?? `Type#${val.$type}`)
+          : typeof val;
+        details.unknownSaveFields.push({
+          key,
+          typeName,
+          preview: getVariantPreview(val)
+        });
+        console.log(`[Save Editor] Unknown save field "${key}":`, val);
+      }
+    }
+
+    // === Scan journal sections ===
     const journalValue = save.value.journal.value;
     const allJournalKeys = Object.keys(journalValue).filter((x) => !x.startsWith("__saveEditor"));
     console.log("[Save Editor] Journal sections found:", allJournalKeys);
@@ -57,7 +123,6 @@
     for (const sectionKey of allJournalKeys) {
       const section = (journalValue as Record<string, any>)[sectionKey];
 
-      // Check if this section is a proper dictionary
       if (!section || typeof section !== "object" || section.$type !== GodotVariantType.Dictionary) {
         console.log(`[Save Editor] Malformed journal section "${sectionKey}":`, section);
         details.malformedSections.push({
@@ -65,7 +130,7 @@
           reason: !section
             ? "null/undefined value"
             : section.$type !== undefined
-              ? `unexpected type ${section.$type}`
+              ? `unexpected type ${variantTypeName[section.$type] ?? section.$type}`
               : "not a dictionary"
         });
         continue;
@@ -78,7 +143,7 @@
         continue;
       }
 
-      const entryKeys = Object.keys(sectionValue).filter((x) => !x.startsWith("__saveEditor"));
+      const entryKeys = Object.keys(sectionValue).filter((x: string) => !x.startsWith("__saveEditor"));
       console.log(`[Save Editor] Section "${sectionKey}" entries:`, entryKeys);
 
       const unknownIds: string[] = [];
@@ -86,7 +151,6 @@
         if (!(entryKey in things)) {
           unknownIds.push(entryKey);
         }
-        // Also check if the entry value is a proper JournalItem dictionary
         const entry = sectionValue[entryKey];
         if (entry && typeof entry === "object" && entry.$type !== GodotVariantType.Dictionary) {
           console.log(
@@ -104,7 +168,7 @@
       }
     }
 
-    // Check cosmetics
+    // === Check cosmetics ===
     try {
       const cosmeticsEquipped = Object.values(dictWithoutSpecial(save.value.cosmetics_equipped.value))
         .map((x: any) => (x.$type === GodotVariantType.String ? [x] : x.value) as GodotString[])
@@ -126,7 +190,8 @@
       details.journalEntries.length > 0 ||
       details.malformedSections.length > 0 ||
       details.equippedCosmetics.length > 0 ||
-      details.unlockedCosmetics.length > 0;
+      details.unlockedCosmetics.length > 0 ||
+      details.unknownSaveFields.length > 0;
 
     if (hasCorruption) {
       console.log("[Save Editor] Corruption details:", details);
@@ -139,12 +204,31 @@
 
   let corruption = checkCorrupt();
 
+  function removeUnknownSaveField(key: string) {
+    const saveValue = save.value as Record<string, any>;
+    delete saveValue[key];
+    const order = (saveValue as any).__saveEditor_order;
+    if (Array.isArray(order)) {
+      const idx = order.indexOf(key);
+      if (idx !== -1) order.splice(idx, 1);
+    }
+    if (corruption) {
+      corruption.unknownSaveFields = corruption.unknownSaveFields.filter((f) => f.key !== key);
+      corruption = corruption; // trigger reactivity
+    }
+  }
+
   function fixCorrupt() {
+    // Remove unknown top-level save fields
+    for (const { key } of corruption?.unknownSaveFields ?? []) {
+      console.log(`Deleting unknown save field "${key}"`);
+      removeUnknownSaveField(key);
+    }
+
     // Remove malformed sections from journal
     for (const { key } of corruption?.malformedSections ?? []) {
       console.log(`Deleting malformed journal section "${key}"`);
       delete (save.value.journal.value as Record<string, any>)[key];
-      // Also remove from __saveEditor_order if present
       const order = (save.value.journal.value as any).__saveEditor_order;
       if (Array.isArray(order)) {
         const idx = order.indexOf(key);
@@ -157,7 +241,7 @@
       if (key.startsWith("__saveEditor")) continue;
 
       if (!value || typeof value !== "object" || (value as any).$type !== GodotVariantType.Dictionary) {
-        continue; // Skip non-dictionary sections (already handled above)
+        continue;
       }
 
       for (const [key2] of Object.entries(value.value)) {
@@ -213,6 +297,21 @@
       Your save contains data that doesn't match any known game content. This is often caused by a game bug (like a
       phantom "???" fish entry in the journal), a broken mod, or new game content not yet supported by this editor.
     </p>
+
+    {#if corruption.unknownSaveFields.length > 0}
+      <details open>
+        <summary>Unknown save fields ({corruption.unknownSaveFields.length})</summary>
+        <p>These fields exist in your save but are not recognized by the editor. They may be causing the phantom "???" fish.</p>
+        <ul>
+          {#each corruption.unknownSaveFields as field}
+            <li>
+              <code>{field.key}</code> ({field.typeName}) &mdash; {field.preview}
+              <button class="inlineRemoveBtn" on:click={() => removeUnknownSaveField(field.key)}>Remove</button>
+            </li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
 
     {#if corruption.journalEntries.length > 0}
       <details open>
@@ -273,3 +372,15 @@
     </footer>
   </article>
 {/if}
+
+<style>
+  .inlineRemoveBtn {
+    display: inline;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.5rem;
+    font-size: 0.8em;
+    background: var(--pico-del-color, #e53935);
+    border-color: var(--pico-del-color, #e53935);
+    color: white;
+  }
+</style>
